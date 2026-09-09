@@ -1,0 +1,17 @@
+{
+  "name": "VectorAI Studio",
+  "short_name": "VectorAI",
+  "description": "Yüksek Seviye Yapay Zekâ Çizim & Görsel Oluşturma Uygulaması",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "watermarked_img_6155727846959132032.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
