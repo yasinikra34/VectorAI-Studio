@@ -1,0 +1,25 @@
+{
+  "name": "VectorAI Studio Pro",
+  "short_name": "VectorAI",
+  "start_url": "/VectorAI-Studio/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "scope": "/VectorAI-Studio/",
+  "description": "Profesyonel Vektör Çizim ve Yapay Zeka Destekli Grafik Stüdyosu",
+  "icons": [
+    {
+      "src": "watermarked_img_6155727846959132032.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "watermarked_img_6155727846959132032.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
