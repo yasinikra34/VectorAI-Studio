@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VectorAI Studio - Pro</title>
+  
+  <!-- PWA Manifest & Theme Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      background-color: #0a0a0a;
+      color: #dfb15b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Splash Screen */
+    #splash {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000 url('watermarked_img_6155727846959132032.jpg') center/cover no-repeat;
+      z-index: 9999;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 60px;
+      transition: opacity 0.6s ease;
+    }
+    #splash h1 {
+      color: #dfb15b;
+      font-size: 22px;
+      letter-spacing: 3px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+      font-weight: 800;
+    }
+
+    /* Top Bar */
+    .header-bar {
+      height: 50px;
+      background: #121212;
+      border-bottom: 1px solid #2a251a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+    .brand {
+      font-weight: bold;
+      color: #dfb15b;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
+    .btn {
+      background: linear-gradient(135deg, #dfb15b, #a3792c);
+      color: #000;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #dfb15b;
+      color: #dfb15b;
+    }
+
+    /* Main Area */
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      background: #141414;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    /* Controls Panel */
+    .controls {
+      background: #121212;
+      border-top: 1px solid #2a251a;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .tool-btn {
+      background: #1e1e1e;
+      border: 1px solid #dfb15b33;
+      color: #dfb15b;
+      padding: 7px 5px;
+      border-radius: 5px;
+      font-size: 11px;
+      flex: 1;
+      text-align: center;
+    }
+    .tool-btn.active {
+      background: #dfb15b;
+      color: #000;
+      font-weight: bold;
+    }
+    input[type="color"] {
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: none;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: #dfb15b;
+    }
+    select {
+      background: #1e1e1e;
+      border: 1px solid #dfb15b55;
+      color: #dfb15b;
+      padding: 6px;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+
+    /* AI Section */
+    .ai-box {
+      display: flex;
+      gap: 6px;
+    }
+    .ai-box input[type="text"] {
+      flex: 1;
+      background: #000;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 8px;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+
+    /* Ad Banner Slot (AdMob Ready) */
+    #ad-banner {
+      height: 50px;
+      background: #050505;
+      border-top: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Splash Screen -->
+  <div id="splash">
+    <h1>VECTOR AI STUDIO</h1>
+  </div>
+
+  <!-- Header -->
+  <div class="header-bar">
+    <div class="brand">VectorAI Pro</div>
+    <div class="action-btns">
+      <button class="btn btn-outline" onclick="undo()">Geri</button>
+      <button class="btn btn-outline" onclick="clearCanvas()">Temizle</button>
+      <button class="btn" onclick="exportImage('png')">PNG</button>
+      <button class="btn" onclick="exportSVG()">SVG</button>
+    </div>
+  </div>
+
+  <!-- Drawing Canvas -->
+  <div id="canvas-container">
+    <canvas id="paintCanvas"></canvas>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <!-- Row 1: Drawing Modes -->
+    <div class="row">
+      <button id="btnBrush" class="tool-btn active" onclick="setTool('brush')">Fırça</button>
+      <button id="btnEraser" class="tool-btn" onclick="setTool('eraser')">Silgi</button>
+      <button id="btnLine" class="tool-btn" onclick="setTool('line')">Çizgi</button>
+      <button id="btnRect" class="tool-btn" onclick="setTool('rect')">Kare</button>
+      <button id="btnCircle" class="tool-btn" onclick="setTool('circle')">Daire</button>
+    </div>
+
+    <!-- Row 2: Options -->
+    <div class="row">
+      <input type="color" id="colorPicker" value="#dfb15b" onchange="updateColor(this.value)">
+      <input type="range" id="sizePicker" min="1" max="50" value="5" oninput="updateSize(this.value)">
+      <select id="aiStyle">
+        <option value="vector illustration">Vektör Stil</option>
+        <option value="3D render gold luxury">3D Lüks Altın</option>
+        <option value="digital art concept">Dijital Sanat</option>
+        <option value="photorealistic">Fotogerçekçi</option>
+      </select>
+    </div>
+
+    <!-- Row 3: AI Prompt -->
+    <div class="ai-box">
+      <input type="text" id="aiPrompt" placeholder="Yapay zekâ hayal etsin (ör: altın anka kuşu)...">
+      <button class="btn" onclick="generateAI()">AI Üret</button>
+    </div>
+  </div>
+
+  <!-- AdMob Banner Container -->
+  <div id="ad-banner">
+    <span>[ AdMob Banner Alanı ]</span>
+  </div>
+
+  <script>
+    // Hide Splash Screen
+    setTimeout(() => {
+      const splash = document.getElementById('splash');
+      splash.style.opacity = '0';
+      setTimeout(() => splash.style.display = 'none', 600);
+    }, 2200);
+
+    // Canvas & Context Setup
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let tool = 'brush';
+    let color = '#dfb15b';
+    let size = 5;
+    let startX = 0, startY = 0;
+
+    // History System (Undo)
+    let history = [];
+    const maxHistory = 15;
+
+    function saveState() {
+      if (history.length >= maxHistory) history.shift();
+      history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    }
+
+    function undo() {
+      if (history.length > 0) {
+        ctx.putImageData(history.pop(), 0, 0);
+      }
+    }
+
+    function resizeCanvas() {
+      const tempImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      ctx.fillStyle = "#141414";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.putImageData(tempImageData, 0, 0);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Initial setup
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - 200;
+    ctx.fillStyle = "#141414";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveState();
+
+    function setTool(newTool) {
+      tool = newTool;
+      ['btnBrush', 'btnEraser', 'btnLine', 'btnRect', 'btnCircle'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      if(newTool === 'brush') document.getElementById('btnBrush').classList.add('active');
+      if(newTool === 'eraser') document.getElementById('btnEraser').classList.add('active');
+      if(newTool === 'line') document.getElementById('btnLine').classList.add('active');
+      if(newTool === 'rect') document.getElementById('btnRect').classList.add('active');
+      if(newTool === 'circle') document.getElementById('btnCircle').classList.add('active');
+    }
+
+    function updateColor(val) { color = val; if(tool==='eraser') setTool('brush'); }
+    function updateSize(val) { size = val; }
+
+    function clearCanvas() {
+      saveState();
+      ctx.fillStyle = "#141414";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Pointer Events (Touch, Stylus/S-Pen, Mouse)
+    let snapshot;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      isDrawing = true;
+      saveState();
+      const rect = canvas.getBoundingClientRect();
+      startX = e.clientX - rect.left;
+      startY = e.clientY - rect.top;
+
+      snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDrawing) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
+
+      let currentSize = size;
+      if (e.pressure && e.pressure > 0) {
+        currentSize = size * e.pressure * 2.2;
+      }
+
+      ctx.lineWidth = currentSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (tool === 'brush') {
+        ctx.strokeStyle = color;
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+      } else if (tool === 'eraser') {
+        ctx.strokeStyle = '#141414';
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+      } else if (tool === 'line' || tool === 'rect' || tool === 'circle') {
+        ctx.putImageData(snapshot, 0, 0);
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        if (tool === 'line') {
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(currentX, currentY);
+        } else if (tool === 'rect') {
+          ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+        } else if (tool === 'circle') {
+          let radius = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
+          ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+        }
+        ctx.stroke();
+      }
+    });
+
+    canvas.addEventListener('pointerup', () => isDrawing = false);
+    canvas.addEventListener('pointerleave', () => isDrawing = false);
+
+    // AI Engine Entegrasyonu
+    function generateAI() {
+      const promptText = document.getElementById('aiPrompt').value.trim();
+      const styleText = document.getElementById('aiStyle').value;
+
+      if (!promptText) {
+        alert("Lütfen yapay zekâya ne çizdirmek istediğinizi yazın!");
+        return;
+      }
+
+      saveState();
+      const fullPrompt = encodeURIComponent(`${promptText}, ${styleText}`);
+      const aiUrl = `https://pollinations.ai/p/${fullPrompt}?width=1024&height=1024&seed=${Math.floor(Math.random()*9999)}`;
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = aiUrl;
+    }
+
+    // Export Functions
+    function exportImage(type) {
+      const link = document.createElement('a');
+      link.download = `vectorai-drawing.${type}`;
+      link.href = canvas.toDataURL(`image/${type}`);
+      link.click();
+    }
+
+    function exportSVG() {
+      const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">
+        <foreignObject width="100%" height="100%">
+          <xhtml:img xmlns:xhtml="http://www.w3.org/1999/xhtml" src="${canvas.toDataURL('image/png')}" width="${canvas.width}" height="${canvas.height}"/>
+        </foreignObject>
+      </svg>`;
+      
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const link = document.createElement('a');
+      link.download = 'vectorai-drawing.svg';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+  </script>
+</body>
+</html>
